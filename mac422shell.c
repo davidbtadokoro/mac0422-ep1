@@ -1,51 +1,55 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
-#define MAX_WORD 30
+#define PAL_MAX 30
 
 int main(int argc, char const *argv[]) {
-  char comando[MAX_WORD];
-  char arquivo[MAX_WORD];
+  char comando[PAL_MAX];
+  char arquivo[PAL_MAX];
 
+  // Inicio da shell:
   while (1) {
     printf("mac422shell> ");
     scanf("%s", comando);
+    if (strcmp(comando, "sair") == 0) return 0; // termina shell
     scanf("%s", arquivo);
 
+    // Bloco "protecao":
     if (strcmp(comando, "protegepracaramba") == 0) {
       if (fork() == 0) {
-        char* const args[] = {"/bin/chmod", "000", arquivo, NULL};
-        char* const env_args[] = {NULL};
-        execve(args[0], args, env_args);
+        long protecao = 0000;
+        chmod(arquivo, protecao);
+        exit(0);
+      }
+    }
+    if (strcmp(comando, "liberageral") == 0) {
+      if (fork() == 0) {
+        long protecao = 0777;
+        chmod(arquivo, protecao);
+        exit(0);
       }
     }
 
-    if (strcmp(comando, "liberageral") == 0) {
-      if (fork() == 0) {
-        char* const args[] = {"/bin/chmod", "777", arquivo, NULL};
-        char* const env_args[] = {NULL};
-        execve(args[0], args, env_args);
-      }
-    }
+    // Bloco "rode":
+    char* const args[] = {arquivo, NULL}; // prepara args de execve
+    char* const env_args[] = {NULL};      // prepara env de execve
     if (strcmp(comando, "rodeveja") == 0) {
-      char* const args[] = {arquivo, NULL};
-      char* const env_args[] = {NULL};
       int codigo = 0;
       if (fork() == 0) {
         codigo = execve(args[0], args, env_args);
-
+        exit(0);
       }
       wait(NULL);
-      printf("programa '%s' retornou com o código %d.\n", arquivo, codigo);
+      printf("programa '%s' retornou com o codigo %d.\n", arquivo, codigo);
     }
     if (strcmp(comando, "rode") == 0) {
-      char* const args[] = {arquivo, NULL};
-      char* const env_args[] = {NULL};
       if (fork() == 0) {
         execve(args[0], args, env_args);
+        exit(0);
       }
     }
   }
