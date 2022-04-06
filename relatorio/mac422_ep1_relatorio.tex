@@ -51,6 +51,20 @@ Esse último foi implementado para encerrar a shell de forma elegante.
 
 \section{Proteção de Arquivos}
 
+Nossa shell admite os seguintes comandos para a proteção de arquivos:
+\begin{itemize}
+\item protegepracaramba $<\textrm{caminho do arquivo}>$
+\item liberageral $<\textrm{caminho do arquivo}>$
+\end{itemize}
+
+As implementações de ambas foram muito similares.  Nos dois casos,  fizemos apenas uma chamada de sistema \texttt{chmod()}, da seguinte forma:
+\begin{align*}
+\texttt{chmod(arquivo, proteção)}
+\end{align*}
+
+
+Aqui, \texttt{arquivo} é a string guarda o caminho do arquivo que se deseja alterar as permissões e \texttt{proteção} é o inteiro que guarda o código da proteção.  No caso de \texttt{protegepracaramba}, \texttt{proteção} = 0000. Já em \texttt{liberageral}, \texttt{proteção} = 0777.
+
 \section{Execução de Programas}
 
 
