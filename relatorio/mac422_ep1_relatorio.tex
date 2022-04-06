@@ -33,7 +33,21 @@
 
 \section{Introdução}
 
+Nesse primeiro EP, tivemos como objetivo implementar uma shell simplificada que faz chamadas de sistema predefinidas para alterar a proteção de arquivos e executar programas. Usamos a versão 3.1.2a do MINIX para rodar essa shell.
+
 \section{Funcionamento da Shell}
+
+O funcionamento da shell se dá por meio de um loop infinito, de modo que, a cada loop, lê-se da entrada padrão um comando e um arquivo que devem ser executados. Os comandos aceitos são 4 (+ 1):
+
+\begin{itemize}
+	\item protegepracaramba $<\textrm{caminho do arquivo}>$
+	\item liberageral $<\textrm{caminho do arquivo}>$
+	\item rodeveja $<\textrm{caminho do programa}>$
+	\item rode $<\textrm{caminho do programa}>$
+	\item sair
+\end{itemize}
+
+Esse último foi implementado para encerrar a shell de forma elegante.
 
 \section{Proteção de Arquivos}
 
