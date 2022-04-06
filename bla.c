@@ -2,5 +2,5 @@
 
 int main(int argc, char const *argv[]) {
   printf("BLA!\n");
-  return 0;
+  return 42;
 }

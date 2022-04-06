@@ -38,12 +38,14 @@ int main(int argc, char const *argv[]) {
     char* const args[] = {arquivo, NULL}; // prepara args de execve
     char* const env_args[] = {NULL};      // prepara env de execve
     if (strcmp(comando, "rodeveja") == 0) {
-      int codigo = 0;
-      if (fork() == 0) {
-        codigo = execve(args[0], args, env_args);
+      int codigo;
+      pid_t pid = fork();
+      if (pid == 0) {
+        execve(args[0], args, env_args);
         exit(0);
       }
-      wait(NULL);
+      waitpid(pid, &codigo, 0);
+      codigo = WEXITSTATUS(codigo);
       printf("programa '%s' retornou com o codigo %d.\n", arquivo, codigo);
     }
     if (strcmp(comando, "rode") == 0) {
