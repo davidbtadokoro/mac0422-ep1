@@ -5,7 +5,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 
-#define PAL_MAX 30
+#define PAL_MAX 100
 
 int main(int argc, char const *argv[]) {
   char comando[PAL_MAX];
@@ -18,23 +18,13 @@ int main(int argc, char const *argv[]) {
     if (strcmp(comando, "sair") == 0) return 0; // termina shell
     scanf("%s", arquivo);
 
-    // Bloco "protecao":
-    if (strcmp(comando, "protegepracaramba") == 0) {
-      if (fork() == 0) {
-        long protecao = 0000;
-        chmod(arquivo, protecao);
-        exit(0);
-      }
-    }
-    if (strcmp(comando, "liberageral") == 0) {
-      if (fork() == 0) {
-        long protecao = 0777;
-        chmod(arquivo, protecao);
-        exit(0);
-      }
-    }
+    // Bloco de protecao de arquivos:
+    if (strcmp(comando, "protegepracaramba") == 0)
+      chmod(arquivo, 0000);
+    if (strcmp(comando, "liberageral") == 0)
+      chmod(arquivo, 0777);
 
-    // Bloco "rode":
+    // Bloco de execução de programas:
     char* const args[] = {arquivo, NULL}; // prepara args de execve
     char* const env_args[] = {NULL};      // prepara env de execve
     if (strcmp(comando, "rodeveja") == 0) {
