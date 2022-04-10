@@ -3,6 +3,17 @@
 \usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath, amsfonts, amssymb, xcolor}
+%Preâmbulo para hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={MAC0422 EP1},
+    pdfpagemode=FullScreen,
+    }
+\urlstyle{same}
 
 \begin{document}
 
@@ -10,7 +21,7 @@
 	\begin{center}
 		\line(1,0){400} \\
 		[0.25in]
-		\huge{\bfseries Exercício Programa 1} \\
+		\huge{\bfseries Exercício Programa 1 - Relatório} \\
 		[0.01in]
 		\line(1,0){300} \\
 		[0.5cm]
@@ -62,8 +73,7 @@ As implementações de ambas foram muito similares.  Nos dois casos,  fizemos ap
 \texttt{chmod(arquivo, proteção)}
 \end{align*}
 
-
-Aqui, \texttt{arquivo} é a string guarda o caminho do arquivo que se deseja alterar as permissões e \texttt{proteção} é o inteiro que guarda o código da proteção.  No caso de \texttt{protegepracaramba}, \texttt{proteção} = 0000. Já em \texttt{liberageral}, \texttt{proteção} = 0777.
+Aqui, \texttt{arquivo} é a string que guarda o caminho do arquivo que se deseja alterar as permissões e \texttt{proteção} é o inteiro que guarda o código da proteção.  No caso de \texttt{protegepracaramba}, \texttt{proteção} = 0000. Já em \texttt{liberageral}, \texttt{proteção} = 0777.
 
 \section{Execução de Programas}
 
@@ -75,8 +85,23 @@ Nossa shell admite os seguintes comandos para a execução de programas:
 
 A execução de programas deve ser pensada em termos da administração de processos. Dessa forma, para implementar esses dois comandos, utilizamos as chamadas de sistema \texttt{fork()}, \texttt{waitpid()}, \texttt{execve()} e \texttt{exit()}.
 
-Na implementação do comando rodeveja, criamos um novo processo utilizando a chamada de sistema \texttt{fork()}. Como o \texttt{fork()} retorna 0 para o filho, fizemos um condicional para que ele rode o programa em $<\textrm{arquivo}>$. Esse programa é então executado por meio do comando \texttt{execve()}, que recebe o nome do arquivo (primeiro valor do vetor de args), os argumentos (restante do vetor args, que é NULL) e um ambiente (vetor env_args, que é NULL). Ao mesmo tempo, utilizamos o \texttt{waitpid()} para que o processo pai aguarde a execução do processo filho, identificado pela variável pid*. É importante que haja essa 'espera' por parte do processo pai para que o processo filho não vire um 'zombie', consumiundo espaço do kernel mesmo após finalizado. Ao final, utilizando a macro WEXITSTATUS, da biblioteca /textit{sys/wait.h}, obtemos o \textit{exit status} do processo filho para printar na tela o retorno do programa rodado.
+\subsection{Comando \texttt{rodeveja}}
 
-* Utilizamos a chamada \texttt{waitpid()} ao invés da chamada \texttt{wait()} pois ela permite um maior controle sobre o processo filho que pretendemos aguardar.
+Na implementação do comando \texttt{rodeveja}, criamos um novo processo utilizando a chamada de sistema \texttt{fork()}. Como o \texttt{fork()} retorna 0 para o filho, fizemos um condicional para que ele (o filho) rode o programa em $<\textrm{arquivo}>$.
+
+Esse programa é então executado por meio do comando \texttt{execve()}, que recebe o nome do arquivo (primeiro valor do vetor de args), os argumentos (restante do vetor \texttt{args}, que é NULL) e um ambiente (vetor \texttt{env\_args}, que é NULL). O uso de \texttt{execve()} que faz necessário o uso de \texttt{fork()}, pois a primeira chamada de sistema substitui o espaço na memória do programa original pelo novo programa chamado como primeiro argumento de \texttt{execve()} ($<\textrm{arquivo}>$), efetivamente 'matando' o programa original do processo chamador.
+
+Ao mesmo tempo, utilizamos o \texttt{waitpid()} para que o processo pai aguarde a execução do processo filho, identificado pela variável \texttt{pid}\footnote{Utilizamos a chamada \texttt{waitpid()} ao invés da chamada \texttt{wait()}, pois ela permite um maior controle sobre qual processo filho que pretendemos aguardar. Por exemplo, usando \texttt{wait()}, se fizéssemos \texttt{rode arq1} (em que a execução de \texttt{arq1} retorna o valor 1) e, em seguida, fizéssemos \texttt{rodeveja arq2} (em que a execução de \texttt{arq2} retorna o valor 2), o código retornado por este segundo comando seria 1 e não 2 como deveria ser (além do pai não esperar de fato o programa). Este foi um problema que nos deparamos e nos fez trocar \texttt{wait()} por \texttt{waitpid()} em nossa implementação. Um excerto do \href{https://pubs.opengroup.org/onlinepubs/9699919799/functions/waitpid.html}{POSIX.1-2017} explica este efeito colateral:
+\textit{If termination status information is available prior to the call to wait(), return shall be immediate.}}. É importante que haja essa 'espera' por parte do processo pai para que o processo filho não vire um 'zombie', consumindo espaço do kernel mesmo após finalizado. Ao final, utilizando a macro \texttt{WEXITSTATUS}, da biblioteca \textit{sys/wait.h}, obtemos o \textit{exit status} (num formato legível) do processo filho para printar na tela o retorno do programa rodado.
+
+\subsection{Comando \texttt{rode}}
+
+A implementação do comando \texttt{rode} é análoga a do comando \texttt{rodeveja}, no sentido de termos de criar um processo filho com \texttt{fork()} para chamarmos \texttt{execve()} e executarmos o programa passado como argumento.
+
+A diferença primordial é que nossa shell (processo pai) não 'espera' a execução do programa passado como argumento de \texttt{execve}. Isto é, não fizemos um \texttt{waitpid()} para que o processo pai espere o processo filho executar, fazendo com que este rode em segundo plano de forma similar ao operador \texttt{\&} usual de sistemas UNIX.
+
+Como especificado no enunciado do EP1, o programa rodado ainda pode printar na saída padrão, mas, como nossa shell (processo pai) deve monopolizar a entrada padrão, utilizamos o comando \texttt{close()} para fechar a entrada padrão do processo filho. Pode-se notar que a entrada padrão do processo filho realmente fecha, pois, ao executarmos \texttt{rode} com um programa que possui um \texttt{scanf()}, este \texttt{scanf()} é 'ignorado' e o programa segue sua execução.
+
+
 
 \end{document}
