@@ -67,5 +67,16 @@ Aqui, \texttt{arquivo} é a string guarda o caminho do arquivo que se deseja alt
 
 \section{Execução de Programas}
 
+Nossa shell admite os seguintes comandos para a execução de programas:
+\begin{itemize}
+\item rodeveja $<\textrm{caminho do arquivo}>$
+\item rode $<\textrm{caminho do arquivo}>$
+\end{itemize}
+
+A execução de programas deve ser pensada em termos da administração de processos. Dessa forma, para implementar esses dois comandos, utilizamos as chamadas de sistema \texttt{fork()}, \texttt{waitpid()}, \texttt{execve()} e \texttt{exit()}.
+
+Na implementação do comando rodeveja, criamos um novo processo utilizando a chamada de sistema \texttt{fork()}. Como o \texttt{fork()} retorna 0 para o filho, fizemos um condicional para que ele rode o programa em $<\textrm{arquivo}>$. Esse programa é então executado por meio do comando \texttt{execve()}, que recebe o nome do arquivo (primeiro valor do vetor de args), os argumentos (restante do vetor args, que é NULL) e um ambiente (vetor env_args, que é NULL). Ao mesmo tempo, utilizamos o \texttt{waitpid()} para que o processo pai aguarde a execução do processo filho, identificado pela variável pid*. É importante que haja essa 'espera' por parte do processo pai para que o processo filho não vire um 'zombie', consumiundo espaço do kernel mesmo após finalizado. Ao final, utilizando a macro WEXITSTATUS, da biblioteca /textit{sys/wait.h}, obtemos o \textit{exit status} do processo filho para printar na tela o retorno do programa rodado.
+
+* Utilizamos a chamada \texttt{waitpid()} ao invés da chamada \texttt{wait()} pois ela permite um maior controle sobre o processo filho que pretendemos aguardar.
 
 \end{document}
